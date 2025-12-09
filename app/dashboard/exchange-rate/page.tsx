@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getCurrentExchangeRate, getExchangeRateHistory } from "@/lib/actions/exchange-rate"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { formatDateTime } from "@/lib/utils"

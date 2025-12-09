@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getRechargeRequests, getPendingRecharges } from "@/lib/actions/recharges"
 import { getCurrentExchangeRate } from "@/lib/actions/exchange-rate"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"

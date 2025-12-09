@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getOperator } from "@/lib/actions/operators"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
