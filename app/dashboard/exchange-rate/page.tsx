@@ -48,9 +48,9 @@ export default async function ExchangeRatePage() {
               </div>
 
               {currentRate?.buyRate && (
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-muted-foreground">Precio de Compra (referencia)</p>
-                  <p className="text-xl font-bold">
+                <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                  <p className="text-sm text-purple-300/70">Precio de Compra (referencia)</p>
+                  <p className="text-xl font-bold text-purple-200">
                     ${Number(currentRate.buyRate).toFixed(2)} MXN
                   </p>
                 </div>

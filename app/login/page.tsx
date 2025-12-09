@@ -49,15 +49,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 -left-32 w-64 h-64 bg-purple-600/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 -right-32 w-96 h-96 bg-pink-600/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-32 left-1/2 w-80 h-80 bg-violet-600/15 rounded-full blur-3xl" />
-      </div>
-
-      <div className="w-full max-w-md mx-4 relative z-10">
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-md mx-4">
         {/* Logo section */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl glass-card neon-glow mb-4">

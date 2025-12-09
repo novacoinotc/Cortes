@@ -142,14 +142,14 @@ export async function OperatorDashboard({ operatorId }: { operatorId: string }) 
       {/* Acciones rapidas */}
       <div className="grid gap-4 md:grid-cols-3">
         <Link href="/dashboard/my-recharges/new">
-          <Card className="cursor-pointer hover:bg-gray-50 transition-colors">
+          <Card className="cursor-pointer hover:bg-purple-500/10 transition-colors">
             <CardContent className="flex items-center gap-4 pt-6">
-              <div className="p-3 bg-blue-100 rounded-full">
-                <ArrowUpDown className="h-6 w-6 text-blue-600" />
+              <div className="p-3 rounded-xl bg-cyan-500/20">
+                <ArrowUpDown className="h-6 w-6 text-cyan-400" />
               </div>
               <div>
                 <p className="font-medium">Solicitar Recarga</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-purple-300/60">
                   Pide USDT al administrador
                 </p>
               </div>
@@ -158,14 +158,14 @@ export async function OperatorDashboard({ operatorId }: { operatorId: string }) 
         </Link>
 
         <Link href="/dashboard/my-cuts/new">
-          <Card className="cursor-pointer hover:bg-gray-50 transition-colors">
+          <Card className="cursor-pointer hover:bg-purple-500/10 transition-colors">
             <CardContent className="flex items-center gap-4 pt-6">
-              <div className="p-3 bg-green-100 rounded-full">
-                <FileText className="h-6 w-6 text-green-600" />
+              <div className="p-3 rounded-xl bg-emerald-500/20">
+                <FileText className="h-6 w-6 text-emerald-400" />
               </div>
               <div>
                 <p className="font-medium">Hacer Corte</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-purple-300/60">
                   {todayCut ? "Continuar corte de hoy" : "Iniciar corte del dia"}
                 </p>
               </div>
@@ -174,14 +174,14 @@ export async function OperatorDashboard({ operatorId }: { operatorId: string }) 
         </Link>
 
         <Link href="/dashboard/my-loans/new">
-          <Card className="cursor-pointer hover:bg-gray-50 transition-colors">
+          <Card className="cursor-pointer hover:bg-purple-500/10 transition-colors">
             <CardContent className="flex items-center gap-4 pt-6">
-              <div className="p-3 bg-purple-100 rounded-full">
-                <Wallet className="h-6 w-6 text-purple-600" />
+              <div className="p-3 rounded-xl bg-pink-500/20">
+                <Wallet className="h-6 w-6 text-pink-400" />
               </div>
               <div>
                 <p className="font-medium">Solicitar Prestamo</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-purple-300/60">
                   Para ordenes mayores al fondo
                 </p>
               </div>

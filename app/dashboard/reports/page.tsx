@@ -223,7 +223,7 @@ export default async function ReportsPage() {
                       </TableCell>
                     </TableRow>
                   ))}
-                <TableRow className="bg-gray-50 font-bold">
+                <TableRow className="bg-purple-500/10 font-bold">
                   <TableCell>TOTAL</TableCell>
                   <TableCell className="text-right">
                     {Object.values(data.profitByOperator).reduce((s, o) => s + o.cuts, 0)}

@@ -47,8 +47,8 @@ export default async function RechargesPage() {
       </div>
 
       {currentRate && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-blue-800">
+        <div className="rounded-xl bg-pink-500/10 border border-pink-500/20 p-4">
+          <p className="text-pink-300">
             <span className="font-medium">Tipo de cambio actual:</span> $
             {Number(currentRate.sellRate).toFixed(2)} MXN por USDT
           </p>

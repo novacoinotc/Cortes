@@ -102,9 +102,9 @@ export function RechargeActions({ rechargeId, amountMXN, currentRate }: Recharge
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-600">MXN a recibir del operador</p>
-              <p className="text-xl font-bold text-blue-700">
+            <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+              <p className="text-sm text-cyan-300/70">MXN a recibir del operador</p>
+              <p className="text-xl font-bold text-cyan-300">
                 {formatCurrency(amountMXN)}
               </p>
             </div>
@@ -122,9 +122,9 @@ export function RechargeActions({ rechargeId, amountMXN, currentRate }: Recharge
             </div>
 
             {calculatedUSDT > 0 && (
-              <div className="p-3 bg-green-50 rounded-lg">
-                <p className="text-sm text-green-600">USDT a entregar</p>
-                <p className="text-xl font-bold text-green-700">
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                <p className="text-sm text-emerald-300/70">USDT a entregar</p>
+                <p className="text-xl font-bold text-emerald-300">
                   {formatCurrency(calculatedUSDT, "USDT")}
                 </p>
               </div>

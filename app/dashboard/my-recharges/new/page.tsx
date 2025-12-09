@@ -138,32 +138,32 @@ export default function NewRechargePage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-muted-foreground">Tipo de cambio actual</p>
-              <p className="text-2xl font-bold">
+            <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
+              <p className="text-sm text-purple-300/70">Tipo de cambio actual</p>
+              <p className="text-2xl font-bold text-purple-200">
                 {currentRate ? `$${currentRate.toFixed(2)} MXN` : "No disponible"}
               </p>
             </div>
 
             {amountMXN && currentRate && (
               <>
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-blue-600">MXN a pagar</p>
-                  <p className="text-2xl font-bold text-blue-700">
+                <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+                  <p className="text-sm text-cyan-300/70">MXN a pagar</p>
+                  <p className="text-2xl font-bold text-cyan-300">
                     {formatCurrency(parseFloat(amountMXN))}
                   </p>
                 </div>
 
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <p className="text-sm text-green-600">USDT estimado a recibir</p>
-                  <p className="text-2xl font-bold text-green-700">
+                <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                  <p className="text-sm text-emerald-300/70">USDT estimado a recibir</p>
+                  <p className="text-2xl font-bold text-emerald-300">
                     {formatCurrency(estimatedUSDT, "USDT")}
                   </p>
                 </div>
               </>
             )}
 
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-purple-300/50">
               * El tipo de cambio final sera asignado por el administrador al aprobar la solicitud
             </p>
           </CardContent>
