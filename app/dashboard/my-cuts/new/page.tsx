@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
 import { createOrUpdateDailyCut, getTodayCut } from "@/lib/actions/cuts"
+import { getCurrentExchangeRate } from "@/lib/actions/exchange-rate"
 import { ArrowLeft, Calculator } from "lucide-react"
 import Link from "next/link"
 import { formatCurrency } from "@/lib/utils"
@@ -21,6 +22,7 @@ export default function NewCutPage() {
     balanceMXN: number
     balanceUSDT: number
   } | null>(null)
+  const [exchangeRate, setExchangeRate] = useState<number>(0)
 
   const [endingBalanceMXN, setEndingBalanceMXN] = useState("")
   const [endingBalanceUSDT, setEndingBalanceUSDT] = useState("")
@@ -33,6 +35,13 @@ export default function NewCutPage() {
   const { data: session } = useSession()
 
   useEffect(() => {
+    // Cargar tipo de cambio actual
+    getCurrentExchangeRate().then((rate) => {
+      if (rate) {
+        setExchangeRate(Number(rate.sellRate))
+      }
+    })
+
     if (session?.user.operatorId) {
       // Cargar datos del operador y corte de hoy si existe
       fetch(`/api/operator/${session.user.operatorId}`)
@@ -58,13 +67,27 @@ export default function NewCutPage() {
     }
   }, [session])
 
+  // Calcular valor total incluyendo USDT convertido a MXN
+  const usdtValueInMXN = endingBalanceUSDT && exchangeRate
+    ? parseFloat(endingBalanceUSDT) * exchangeRate
+    : 0
+  const totalValueMXN = (parseFloat(endingBalanceMXN) || 0) + usdtValueInMXN
   const calculatedProfit = operatorData && endingBalanceMXN
-    ? parseFloat(endingBalanceMXN) - operatorData.assignedFundMXN
+    ? totalValueMXN - operatorData.assignedFundMXN
     : 0
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!session?.user.operatorId) return
+
+    if (!exchangeRate || exchangeRate <= 0) {
+      toast({
+        title: "Error",
+        description: "No hay tipo de cambio configurado. Contacta al administrador.",
+        variant: "destructive",
+      })
+      return
+    }
 
     setLoading(true)
     try {
@@ -74,6 +97,7 @@ export default function NewCutPage() {
         endingBalanceUSDT: parseFloat(endingBalanceUSDT),
         totalSalesMXN: parseFloat(totalSalesMXN),
         totalSalesUSDT: parseFloat(totalSalesUSDT),
+        exchangeRate: exchangeRate,
         notes: notes || undefined,
       })
       toast({
@@ -214,46 +238,76 @@ export default function NewCutPage() {
             <CardContent className="space-y-4">
               {operatorData ? (
                 <>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-muted-foreground">Tu fondo asignado</p>
-                    <p className="text-2xl font-bold">
+                  <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                    <p className="text-sm text-purple-300/70">Tu fondo asignado</p>
+                    <p className="text-2xl font-bold text-purple-200">
                       {formatCurrency(operatorData.assignedFundMXN)}
                     </p>
                   </div>
 
+                  {exchangeRate > 0 && (
+                    <div className="p-4 rounded-xl bg-pink-500/10 border border-pink-500/20">
+                      <p className="text-sm text-pink-300/70">Tipo de cambio actual</p>
+                      <p className="text-xl font-bold text-pink-300">
+                        ${exchangeRate.toFixed(2)} MXN por USDT
+                      </p>
+                    </div>
+                  )}
+
                   {endingBalanceMXN && (
                     <>
-                      <div className="p-4 bg-blue-50 rounded-lg">
-                        <p className="text-sm text-blue-600">Balance reportado</p>
-                        <p className="text-2xl font-bold text-blue-700">
+                      <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20 space-y-2">
+                        <p className="text-sm text-cyan-300/70">Balance MXN</p>
+                        <p className="text-xl font-bold text-cyan-300">
                           {formatCurrency(parseFloat(endingBalanceMXN))}
                         </p>
+                        {endingBalanceUSDT && parseFloat(endingBalanceUSDT) > 0 && exchangeRate > 0 && (
+                          <>
+                            <p className="text-sm text-cyan-300/70 pt-2">
+                              + Balance USDT ({formatCurrency(parseFloat(endingBalanceUSDT), "USDT")} × ${exchangeRate.toFixed(2)})
+                            </p>
+                            <p className="text-lg font-semibold text-cyan-300">
+                              {formatCurrency(usdtValueInMXN)}
+                            </p>
+                          </>
+                        )}
+                        <div className="border-t border-cyan-500/30 pt-2 mt-2">
+                          <p className="text-sm text-cyan-300/70">= Valor total en MXN</p>
+                          <p className="text-2xl font-bold text-cyan-200">
+                            {formatCurrency(totalValueMXN)}
+                          </p>
+                        </div>
                       </div>
 
-                      <div className={`p-4 rounded-lg ${
-                        calculatedProfit >= 0 ? "bg-green-50" : "bg-red-50"
+                      <div className={`p-4 rounded-xl ${
+                        calculatedProfit >= 0
+                          ? "bg-emerald-500/15 border border-emerald-500/30"
+                          : "bg-red-500/15 border border-red-500/30"
                       }`}>
                         <p className={`text-sm ${
-                          calculatedProfit >= 0 ? "text-green-600" : "text-red-600"
+                          calculatedProfit >= 0 ? "text-emerald-300/70" : "text-red-300/70"
                         }`}>
                           Utilidad calculada
                         </p>
                         <p className={`text-3xl font-bold ${
-                          calculatedProfit >= 0 ? "text-green-700" : "text-red-700"
+                          calculatedProfit >= 0 ? "text-emerald-300" : "text-red-300"
                         }`}>
                           {formatCurrency(calculatedProfit)}
+                        </p>
+                        <p className="text-xs mt-1 text-purple-300/50">
+                          {formatCurrency(totalValueMXN)} - {formatCurrency(operatorData.assignedFundMXN)}
                         </p>
                       </div>
                     </>
                   )}
 
-                  <p className="text-xs text-muted-foreground">
-                    La utilidad es la diferencia entre tu balance actual y tu fondo asignado.
+                  <p className="text-xs text-purple-300/50">
+                    La utilidad es: (Balance MXN + Balance USDT × TC) - Fondo asignado.
                     Esta cantidad deberas transferirla al administrador.
                   </p>
                 </>
               ) : (
-                <p className="text-muted-foreground">Cargando datos...</p>
+                <p className="text-purple-300/50">Cargando datos...</p>
               )}
             </CardContent>
           </Card>

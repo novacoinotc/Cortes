@@ -13,6 +13,7 @@ export async function createOrUpdateDailyCut(data: {
   endingBalanceUSDT: number
   totalSalesMXN: number
   totalSalesUSDT: number
+  exchangeRate: number
   notes?: string
 }) {
   const date = data.date || getToday()
@@ -57,8 +58,10 @@ export async function createOrUpdateDailyCut(data: {
   )
 
   // Calcular utilidad
-  // La utilidad es lo que queda por encima del fondo asignado
-  const calculatedProfitMXN = data.endingBalanceMXN - Number(operator.assignedFundMXN)
+  // La utilidad considera: Balance MXN + (Balance USDT * TC) - Fondo Asignado
+  const usdtValueInMXN = data.endingBalanceUSDT * data.exchangeRate
+  const totalValueMXN = data.endingBalanceMXN + usdtValueInMXN
+  const calculatedProfitMXN = totalValueMXN - Number(operator.assignedFundMXN)
 
   const cutData = {
     startingBalanceMXN: existingCut?.startingBalanceMXN || operator.balanceMXN,

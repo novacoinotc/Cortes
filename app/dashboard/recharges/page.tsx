@@ -79,8 +79,8 @@ export default async function RechargesPage() {
                     <TableRow>
                       <TableHead>Fecha</TableHead>
                       <TableHead>Operador</TableHead>
-                      <TableHead className="text-right">USDT Solicitado</TableHead>
-                      <TableHead className="text-right">Costo MXN (TC actual)</TableHead>
+                      <TableHead className="text-right">MXN a Pagar</TableHead>
+                      <TableHead className="text-right">USDT Estimado (TC actual)</TableHead>
                       <TableHead>Notas</TableHead>
                       <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
@@ -92,13 +92,14 @@ export default async function RechargesPage() {
                         <TableCell className="font-medium">
                           {recharge.operator.user.name}
                         </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(Number(recharge.amountUSDT), "USDT")}
+                        <TableCell className="text-right font-medium">
+                          {formatCurrency(Number(recharge.amountMXN))}
                         </TableCell>
                         <TableCell className="text-right">
                           {currentRate
                             ? formatCurrency(
-                                Number(recharge.amountUSDT) * Number(currentRate.sellRate)
+                                Number(recharge.amountMXN) / Number(currentRate.sellRate),
+                                "USDT"
                               )
                             : "Sin TC"}
                         </TableCell>
@@ -108,6 +109,7 @@ export default async function RechargesPage() {
                         <TableCell className="text-right">
                           <RechargeActions
                             rechargeId={recharge.id}
+                            amountMXN={Number(recharge.amountMXN)}
                             currentRate={currentRate ? Number(currentRate.sellRate) : undefined}
                           />
                         </TableCell>
@@ -136,8 +138,8 @@ export default async function RechargesPage() {
                     <TableRow>
                       <TableHead>Fecha</TableHead>
                       <TableHead>Operador</TableHead>
-                      <TableHead className="text-right">USDT</TableHead>
-                      <TableHead className="text-right">MXN</TableHead>
+                      <TableHead className="text-right">MXN Pagado</TableHead>
+                      <TableHead className="text-right">USDT Recibido</TableHead>
                       <TableHead className="text-right">TC</TableHead>
                       <TableHead>Estado</TableHead>
                     </TableRow>
@@ -150,11 +152,11 @@ export default async function RechargesPage() {
                           {recharge.operator.user.name}
                         </TableCell>
                         <TableCell className="text-right">
-                          {formatCurrency(Number(recharge.amountUSDT), "USDT")}
+                          {formatCurrency(Number(recharge.amountMXN))}
                         </TableCell>
                         <TableCell className="text-right">
-                          {recharge.amountMXN
-                            ? formatCurrency(Number(recharge.amountMXN))
+                          {Number(recharge.amountUSDT) > 0
+                            ? formatCurrency(Number(recharge.amountUSDT), "USDT")
                             : "-"}
                         </TableCell>
                         <TableCell className="text-right">

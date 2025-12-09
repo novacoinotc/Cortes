@@ -7,13 +7,14 @@ import { authOptions } from "@/lib/auth"
 
 export async function createRechargeRequest(data: {
   operatorId: string
-  amountUSDT: number
+  amountMXN: number
   notes?: string
 }) {
   const request = await db.rechargeRequest.create({
     data: {
       operatorId: data.operatorId,
-      amountUSDT: data.amountUSDT,
+      amountMXN: data.amountMXN,
+      amountUSDT: 0, // Se calculara cuando el admin apruebe
       notes: data.notes,
       status: "PENDING",
     },
@@ -44,7 +45,9 @@ export async function approveRechargeRequest(
     throw new Error("Solicitud no encontrada")
   }
 
-  const amountMXN = Number(request.amountUSDT) * exchangeRate
+  // Calcular USDT basado en MXN y TC
+  const amountMXN = Number(request.amountMXN)
+  const amountUSDT = amountMXN / exchangeRate
 
   // Actualizar solicitud
   await db.rechargeRequest.update({
@@ -52,18 +55,19 @@ export async function approveRechargeRequest(
     data: {
       status: "APPROVED",
       exchangeRate,
-      amountMXN,
+      amountUSDT,
       approvedById: session.user.id,
       approvedAt: new Date(),
     },
   })
 
   // Actualizar balance del operador
+  // El operador paga MXN y recibe USDT
   await db.operator.update({
     where: { id: request.operatorId },
     data: {
       balanceUSDT: {
-        increment: Number(request.amountUSDT),
+        increment: amountUSDT,
       },
       balanceMXN: {
         decrement: amountMXN,
@@ -76,11 +80,11 @@ export async function approveRechargeRequest(
     data: {
       operatorId: request.operatorId,
       type: "RECHARGE_USDT",
-      amountUSDT: request.amountUSDT,
+      amountUSDT: amountUSDT,
       amountMXN: -amountMXN,
       exchangeRate,
       rechargeId: requestId,
-      description: `Recarga de ${request.amountUSDT} USDT a TC $${exchangeRate}`,
+      description: `Recarga: Pago ${amountMXN.toLocaleString()} MXN, Recibe ${amountUSDT.toFixed(2)} USDT a TC $${exchangeRate}`,
     },
   })
 
