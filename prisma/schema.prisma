@@ -1,0 +1,273 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Usuario del sistema (Admin u Operador)
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  password      String
+  role          Role      @default(OPERATOR)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relación con operador (si es operador)
+  operator      Operator?
+
+  // Acciones como admin
+  approvedRecharges    RechargeRequest[] @relation("ApprovedBy")
+  approvedLoans        Loan[]            @relation("LoanApprovedBy")
+  setExchangeRates     ExchangeRate[]
+}
+
+enum Role {
+  ADMIN
+  OPERATOR
+}
+
+// Operador con su fondo asignado
+model Operator {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id])
+
+  // Fondo base asignado en MXN
+  assignedFundMXN Decimal   @db.Decimal(18, 2)
+
+  // Saldos actuales
+  balanceMXN      Decimal   @default(0) @db.Decimal(18, 2)
+  balanceUSDT     Decimal   @default(0) @db.Decimal(18, 6)
+
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relaciones
+  transactions      Transaction[]
+  rechargeRequests  RechargeRequest[]
+  loans             Loan[]
+  dailyCuts         DailyCut[]
+}
+
+// Tipos de transacción
+enum TransactionType {
+  RECHARGE_USDT       // Recarga de USDT (compra al admin)
+  SALE_P2P            // Venta P2P (USDT -> MXN)
+  PAYMENT_TO_ADMIN    // Pago al admin (envío de MXN)
+  LOAN_RECEIVED       // Préstamo recibido
+  LOAN_PAYMENT        // Pago de préstamo
+  PROFIT_WITHDRAWAL   // Retiro de utilidades
+  ADJUSTMENT          // Ajuste manual
+}
+
+// Transacciones de cada operador
+model Transaction {
+  id            String          @id @default(cuid())
+  operatorId    String
+  operator      Operator        @relation(fields: [operatorId], references: [id])
+
+  type          TransactionType
+
+  // Montos (pueden ser positivos o negativos según el tipo)
+  amountMXN     Decimal?        @db.Decimal(18, 2)
+  amountUSDT    Decimal?        @db.Decimal(18, 6)
+
+  // Tipo de cambio usado (si aplica)
+  exchangeRate  Decimal?        @db.Decimal(18, 4)
+
+  // Referencia a otras entidades
+  rechargeId    String?
+  loanId        String?
+  dailyCutId    String?
+
+  description   String?
+  createdAt     DateTime        @default(now())
+
+  @@index([operatorId])
+  @@index([createdAt])
+}
+
+// Estado de solicitudes
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+// Solicitudes de recarga de USDT
+model RechargeRequest {
+  id              String        @id @default(cuid())
+  operatorId      String
+  operator        Operator      @relation(fields: [operatorId], references: [id])
+
+  // Monto solicitado
+  amountUSDT      Decimal       @db.Decimal(18, 6)
+
+  // Monto en MXN que el operador va a pagar
+  amountMXN       Decimal?      @db.Decimal(18, 2)
+
+  // Tipo de cambio asignado por el admin
+  exchangeRate    Decimal?      @db.Decimal(18, 4)
+
+  status          RequestStatus @default(PENDING)
+
+  // Comprobante de pago del operador
+  paymentProofUrl String?
+
+  // Admin que aprobó
+  approvedById    String?
+  approvedBy      User?         @relation("ApprovedBy", fields: [approvedById], references: [id])
+  approvedAt      DateTime?
+
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([operatorId])
+  @@index([status])
+}
+
+// Estado de préstamos
+enum LoanStatus {
+  ACTIVE
+  PAID
+  CANCELLED
+}
+
+// Préstamos (cuando necesitan más del fondo asignado)
+model Loan {
+  id              String      @id @default(cuid())
+  operatorId      String
+  operator        Operator    @relation(fields: [operatorId], references: [id])
+
+  // Monto del préstamo
+  amountMXN       Decimal?    @db.Decimal(18, 2)
+  amountUSDT      Decimal?    @db.Decimal(18, 6)
+
+  // Tipo de cambio si fue en USDT
+  exchangeRate    Decimal?    @db.Decimal(18, 4)
+
+  // Motivo del préstamo
+  reason          String
+
+  status          LoanStatus  @default(ACTIVE)
+
+  // Admin que aprobó
+  approvedById    String?
+  approvedBy      User?       @relation("LoanApprovedBy", fields: [approvedById], references: [id])
+  approvedAt      DateTime?
+
+  // Fecha de pago
+  paidAt          DateTime?
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([operatorId])
+  @@index([status])
+}
+
+// Estado del corte
+enum CutStatus {
+  DRAFT           // En proceso
+  PENDING_REVIEW  // Esperando revisión del admin
+  APPROVED        // Aprobado
+  REJECTED        // Rechazado (necesita corrección)
+}
+
+// Cortes diarios
+model DailyCut {
+  id                  String      @id @default(cuid())
+  operatorId          String
+  operator            Operator    @relation(fields: [operatorId], references: [id])
+
+  date                DateTime    @db.Date
+
+  // Saldos al inicio del día
+  startingBalanceMXN  Decimal     @db.Decimal(18, 2)
+  startingBalanceUSDT Decimal     @db.Decimal(18, 6)
+
+  // Totales del día
+  totalSalesMXN       Decimal     @default(0) @db.Decimal(18, 2)
+  totalSalesUSDT      Decimal     @default(0) @db.Decimal(18, 6)
+  totalRechargesMXN   Decimal     @default(0) @db.Decimal(18, 2)
+  totalRechargesUSDT  Decimal     @default(0) @db.Decimal(18, 6)
+
+  // Saldos al final del día (reportados por operador)
+  endingBalanceMXN    Decimal     @db.Decimal(18, 2)
+  endingBalanceUSDT   Decimal     @db.Decimal(18, 6)
+
+  // Cálculo de utilidad
+  calculatedProfitMXN Decimal     @db.Decimal(18, 2)
+
+  // Utilidad que transfiere al admin
+  profitTransferred   Decimal     @default(0) @db.Decimal(18, 2)
+
+  // Comprobante de transferencia de utilidad
+  profitProofUrl      String?
+
+  status              CutStatus   @default(DRAFT)
+
+  notes               String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  @@unique([operatorId, date])
+  @@index([operatorId])
+  @@index([date])
+}
+
+// Histórico de tipos de cambio
+model ExchangeRate {
+  id          String    @id @default(cuid())
+
+  // Tipo de cambio de venta (a los operadores)
+  sellRate    Decimal   @db.Decimal(18, 4)
+
+  // Tipo de cambio de compra (referencia)
+  buyRate     Decimal?  @db.Decimal(18, 4)
+
+  // Usuario que lo estableció
+  setById     String
+  setBy       User      @relation(fields: [setById], references: [id])
+
+  isActive    Boolean   @default(true)
+
+  notes       String?
+  createdAt   DateTime  @default(now())
+
+  @@index([createdAt])
+}
+
+// Resumen mensual por operador (calculado)
+model MonthlyReport {
+  id              String    @id @default(cuid())
+  operatorId      String
+
+  year            Int
+  month           Int
+
+  // Totales del mes
+  totalSalesMXN   Decimal   @db.Decimal(18, 2)
+  totalSalesUSDT  Decimal   @db.Decimal(18, 6)
+  totalProfitMXN  Decimal   @db.Decimal(18, 2)
+
+  // Número de operaciones
+  totalTransactions Int
+  totalCuts         Int
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([operatorId, year, month])
+}
