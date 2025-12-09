@@ -1,16 +1,15 @@
 import { PrismaClient } from '@prisma/client'
 import { Pool, neonConfig } from '@neondatabase/serverless'
 import { PrismaNeon } from '@prisma/adapter-neon'
-import ws from 'ws'
+
+// Configurar para usar fetch en lugar de WebSocket (compatible con Vercel)
+neonConfig.fetchConnectionCache = true
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
 function createPrismaClient() {
-  // Configurar WebSocket para entornos serverless
-  neonConfig.webSocketConstructor = ws
-
   const connectionString = process.env.DATABASE_URL
 
   if (!connectionString) {
