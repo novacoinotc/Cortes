@@ -62,15 +62,14 @@ export async function approveRechargeRequest(
   })
 
   // Actualizar balance del operador
-  // El operador paga MXN y recibe USDT
+  // El operador paga MXN (efectivo de ventas P2P) y recibe USDT
+  // Solo sumamos USDT - el MXN que pagan viene de sus ventas del dia (efectivo)
+  // El balance MXN real se sincroniza cuando hacen el corte diario
   await db.operator.update({
     where: { id: request.operatorId },
     data: {
       balanceUSDT: {
         increment: amountUSDT,
-      },
-      balanceMXN: {
-        decrement: amountMXN,
       },
     },
   })
@@ -81,10 +80,10 @@ export async function approveRechargeRequest(
       operatorId: request.operatorId,
       type: "RECHARGE_USDT",
       amountUSDT: amountUSDT,
-      amountMXN: -amountMXN,
+      amountMXN: amountMXN, // MXN pagado (referencia, no afecta balance)
       exchangeRate,
       rechargeId: requestId,
-      description: `Recarga: Pago ${amountMXN.toLocaleString()} MXN, Recibe ${amountUSDT.toFixed(2)} USDT a TC $${exchangeRate}`,
+      description: `Recarga: Pago ${amountMXN.toLocaleString()} MXN (efectivo), Recibe ${amountUSDT.toFixed(2)} USDT a TC $${exchangeRate}`,
     },
   })
 
