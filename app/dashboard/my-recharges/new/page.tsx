@@ -17,7 +17,7 @@ import { formatCurrency } from "@/lib/utils"
 
 export default function NewRechargePage() {
   const [loading, setLoading] = useState(false)
-  const [amountUSDT, setAmountUSDT] = useState("")
+  const [amountMXN, setAmountMXN] = useState("")
   const [notes, setNotes] = useState("")
   const [currentRate, setCurrentRate] = useState<number | null>(null)
   const router = useRouter()
@@ -32,8 +32,8 @@ export default function NewRechargePage() {
     })
   }, [])
 
-  const estimatedMXN = amountUSDT && currentRate
-    ? parseFloat(amountUSDT) * currentRate
+  const estimatedUSDT = amountMXN && currentRate
+    ? parseFloat(amountMXN) / currentRate
     : 0
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,7 +44,7 @@ export default function NewRechargePage() {
     try {
       await createRechargeRequest({
         operatorId: session.user.operatorId,
-        amountUSDT: parseFloat(amountUSDT),
+        amountMXN: parseFloat(amountMXN),
         notes: notes || undefined,
       })
       toast({
@@ -84,22 +84,25 @@ export default function NewRechargePage() {
           <CardHeader>
             <CardTitle>Solicitar Recarga</CardTitle>
             <CardDescription>
-              El administrador recibira tu solicitud y te asignara el tipo de cambio
+              Indica cuanto MXN vas a pagar y el administrador te asignara los USDT
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="amountUSDT">Cantidad de USDT</Label>
+                <Label htmlFor="amountMXN">Monto a pagar (MXN)</Label>
                 <Input
-                  id="amountUSDT"
+                  id="amountMXN"
                   type="number"
                   step="0.01"
-                  value={amountUSDT}
-                  onChange={(e) => setAmountUSDT(e.target.value)}
-                  placeholder="1000"
+                  value={amountMXN}
+                  onChange={(e) => setAmountMXN(e.target.value)}
+                  placeholder="500000"
                   required
                 />
+                <p className="text-xs text-muted-foreground">
+                  Indica cuanto MXN vas a transferir para comprar USDT
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -114,7 +117,7 @@ export default function NewRechargePage() {
               </div>
 
               <div className="flex gap-4 pt-4">
-                <Button type="submit" disabled={loading || !amountUSDT}>
+                <Button type="submit" disabled={loading || !amountMXN}>
                   {loading ? "Enviando..." : "Enviar Solicitud"}
                 </Button>
                 <Link href="/dashboard/my-recharges">
@@ -142,19 +145,19 @@ export default function NewRechargePage() {
               </p>
             </div>
 
-            {amountUSDT && currentRate && (
+            {amountMXN && currentRate && (
               <>
                 <div className="p-4 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-blue-600">USDT solicitado</p>
+                  <p className="text-sm text-blue-600">MXN a pagar</p>
                   <p className="text-2xl font-bold text-blue-700">
-                    {formatCurrency(parseFloat(amountUSDT), "USDT")}
+                    {formatCurrency(parseFloat(amountMXN))}
                   </p>
                 </div>
 
                 <div className="p-4 bg-green-50 rounded-lg">
-                  <p className="text-sm text-green-600">Costo estimado</p>
+                  <p className="text-sm text-green-600">USDT estimado a recibir</p>
                   <p className="text-2xl font-bold text-green-700">
-                    {formatCurrency(estimatedMXN)}
+                    {formatCurrency(estimatedUSDT, "USDT")}
                   </p>
                 </div>
               </>

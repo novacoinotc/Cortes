@@ -16,19 +16,25 @@ import {
 import { useToast } from "@/components/ui/use-toast"
 import { approveRechargeRequest, rejectRechargeRequest } from "@/lib/actions/recharges"
 import { Check, X } from "lucide-react"
+import { formatCurrency } from "@/lib/utils"
 
 interface RechargeActionsProps {
   rechargeId: string
+  amountMXN: number
   currentRate?: number
 }
 
-export function RechargeActions({ rechargeId, currentRate }: RechargeActionsProps) {
+export function RechargeActions({ rechargeId, amountMXN, currentRate }: RechargeActionsProps) {
   const [approveOpen, setApproveOpen] = useState(false)
   const [rejectOpen, setRejectOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [rate, setRate] = useState(currentRate?.toString() || "")
   const [rejectNotes, setRejectNotes] = useState("")
   const { toast } = useToast()
+
+  const calculatedUSDT = rate && parseFloat(rate) > 0
+    ? amountMXN / parseFloat(rate)
+    : 0
 
   const handleApprove = async () => {
     if (!rate || parseFloat(rate) <= 0) {
@@ -96,6 +102,13 @@ export function RechargeActions({ rechargeId, currentRate }: RechargeActionsProp
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <p className="text-sm text-blue-600">MXN a recibir del operador</p>
+              <p className="text-xl font-bold text-blue-700">
+                {formatCurrency(amountMXN)}
+              </p>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="rate">Tipo de Cambio (MXN por USDT)</Label>
               <Input
@@ -107,12 +120,21 @@ export function RechargeActions({ rechargeId, currentRate }: RechargeActionsProp
                 placeholder="17.50"
               />
             </div>
+
+            {calculatedUSDT > 0 && (
+              <div className="p-3 bg-green-50 rounded-lg">
+                <p className="text-sm text-green-600">USDT a entregar</p>
+                <p className="text-xl font-bold text-green-700">
+                  {formatCurrency(calculatedUSDT, "USDT")}
+                </p>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setApproveOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleApprove} disabled={loading}>
+            <Button onClick={handleApprove} disabled={loading || calculatedUSDT <= 0}>
               {loading ? "Procesando..." : "Confirmar"}
             </Button>
           </DialogFooter>
